@@ -1,0 +1,71 @@
+from decouple import config
+from dotenv import load_dotenv
+from flask import Flask, render_template, request
+from .models import DB, User
+from .predict import predict_user
+from .twitter import add_or_update_user, update_all_users, add_default_users
+
+
+load_dotenv()
+
+def create_app():
+    app = Flask(__name__)
+    app.config['SQLALCHEMY_DATABASE_URI'] = config('DATABASE_URL')
+    app.config['SQLALCHEMY_TRACK_NOTIFICATIONS'] = False
+    app.config['ENV'] = config('ENV')
+    DB.init_app(app)
+
+    @app.route('/')
+    def root():
+        return render_template('base.html', title='Twitoff', users=User.query.all())
+
+    @app.route('/user', methods=['POST'])
+    @app.route('/user/<name>', methods=['GET'])
+    def user(name=None, message=''):
+        name = name or request.values['user_name']
+        tweets = []
+        try:
+            if request.method == 'POST':
+                add_or_update_user(name)
+                message = "User {} successufully added!".format(name)
+            tweets = User.query.filter(User.name==name).one().tweet
+        except:
+            message = "Error adding {} : {}".format(name, e)
+            tweets = []
+        return render_template('user.html', title=name, tweets=tweets, message=message)
+
+
+    @app.route('/compare', methods=['POST'])
+    def compare(message=''):
+        user1 = request.values['user1']
+        user2 = request.values['user2']
+        tweet_text = request.values['tweet_text']
+
+        if user1 == user2:
+            message = 'Cannot compare a user to themselves!'
+        else:
+            prediction = predict_user(user1, user2, tweet_text)
+            message = '"{}" is more likely to be said by {} than {}'.format(
+                request.values['tweet_text'], user1 if prediction else user2,
+                user2 if prediction else user1)
+        return render_template('prediction.html', title='Prediction', message=message)
+
+    @app.route('/reset')
+    def reset():
+        DB.drop_all()
+        DB.create_all()
+        return render_template('base.html', title='Reset database!')
+
+    @app.route('/update')
+    def update():
+        update_all_users()
+        return render_template('base.html', users=User.query.all(), title='All Tweets updated!')
+
+    @app.route('/add_default')
+    def add_default():
+        add_default_users()
+        return render_template('base.html', users=User.query.all(), title='Reset database!')
+
+
+    return app
+
