@@ -24,7 +24,7 @@ def add_or_update_user(username):
         # 200 is a Twitter API limit for single request
         tweets = twitter_user.timeline(count=200, 
                                        exclude_replies=True, 
-                                       include_rts=False, 
+                                       include_rts=False,   
                                        tweet_mode='extended')
 
         newest_tweet_id = tweets[0].id                                       
@@ -45,7 +45,7 @@ def add_or_update_user(username):
 
             # Add tweet info to Tweets table in database
             db_tweet = Tweet(id=tweet.id, 
-                              text=tweet.full_text[:300],
+                              text=tweet.full_text[300],
                               embedding=embedding)
             db_user.tweet.append(db_tweet)
     #        DB.session.add(db_tweet)
