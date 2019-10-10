@@ -64,7 +64,7 @@ def create_app():
     @app.route('/add_default')
     def add_default():
         add_default_users()
-        return render_template('base.html', users=User.query.all(), title='Reset database!')
+        return render_template('base.html', users=User.query.all(), title='add default users')
 
 
     return app
