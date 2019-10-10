@@ -45,7 +45,7 @@ def add_or_update_user(username):
 
             # Add tweet info to Tweets table in database
             db_tweet = Tweet(id=tweet.id, 
-                              text=tweet.full_text,
+                              text=tweet.full_text[:280],
                               embedding=embedding)
             db_user.tweet.append(db_tweet)
     #        DB.session.add(db_tweet)
