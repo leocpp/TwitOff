@@ -15,7 +15,6 @@ python-dotenv = "*"
 scikit-learn = "*"
 gunicorn = "*"
 psycopg2 = "*"
-psycopy2 = "*"
 
 [requires]
 python_version = "3.7"
